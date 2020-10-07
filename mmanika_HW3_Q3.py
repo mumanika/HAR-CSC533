@@ -27,7 +27,7 @@ def main(harfile_path, domain, blockfile):
         url = entry['request']['url']
         print("Processing {} ...".format(url))
         try:
-            fld = get_fld(url)
+            fld = get_fld(url, fail_silently=True)
             adblock_db["stats"]["req"] += 1
             if fld != domain:
                 d = {}
@@ -39,9 +39,9 @@ def main(harfile_path, domain, blockfile):
                     d = {entry["_resourceType"]: True, "third-party": True}
 
                 if rules.should_block(url, d):
-                    adblock_db["stats"]["succ"] += 1
-                else:
                     adblock_db["stats"]["block"] += 1
+                else:
+                    adblock_db["stats"]["succ"] += 1
             else:
                 if entry["_resourceType"] == "xhr":
                     entry["_resourceType"] = "xmlhttprequest"
@@ -51,9 +51,9 @@ def main(harfile_path, domain, blockfile):
                     d = {entry["_resourceType"]: True, "third-party": False}
 
                 if rules.should_block(url, d):
-                    adblock_db["stats"]["succ"] += 1
-                else:
                     adblock_db["stats"]["block"] += 1
+                else:
+                    adblock_db["stats"]["succ"] += 1
         except:
             continue
     return adblock_db
