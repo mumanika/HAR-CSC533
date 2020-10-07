@@ -20,11 +20,13 @@ def main(csv_file):
 
         bw_dict[row["IP Address"]] = [row["Router Name"], float(row["Bandwidth (KB/s)"])]
 
-        relay.append(row["IP Address"])
+
         if row["Flag - Guard"] == "1":
             guard.append(row["IP Address"])
         if row["Flag - Exit"] == "1":
             exit.append(row["IP Address"])
+        if row["Flag - Guard"] == "0" and row["Flag - Exit"] == "1":
+            relay.append(row["IP Address"])
 
     print("The top 5 countries that host the most number of Tor relays are:")
     print(sorted(countries.keys(), key= lambda x: countries[x], reverse=True)[:5])
@@ -32,7 +34,7 @@ def main(csv_file):
     relay_list = sorted(bw_dict.items(), key=lambda x: x[1][1], reverse=True)[:5]
     for i in relay_list:
         print("Name: {}\tIP Address: {}\tBandwidth: {}".format(i[1][0], i[0], i[1][1]))
-    venn3([set(relay), set(guard), set(exit)], set_labels=("Relays", "Guards", "Exit Relays"))
+    venn3([set(relay), set(guard), set(exit)], set_labels=("Middle Relays", "Guard Relays", "Exit Relays"))
     plt.title("Venn Diagram for Relay types")
     plt.show()
     f.close()
