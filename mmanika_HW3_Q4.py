@@ -35,7 +35,6 @@ def main(csv_file):
         "guard_only_bw": 0
     }
     for key, value in tor_relays.items():
-
         if value["guard_relay"] == "0" and value["exit_relay"] == "0":
             relay.append(key)
             stats["mid_bw"] += float(value["bw"])
