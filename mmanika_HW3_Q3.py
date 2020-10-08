@@ -3,6 +3,7 @@ import json
 from tld import get_fld
 from adblockparser import AdblockRules
 from prettytable import PrettyTable
+from urllib.parse import urlparse
 
 
 def main(harfile_path, domain, blockfile):
@@ -25,6 +26,7 @@ def main(harfile_path, domain, blockfile):
     options = ('image', 'xmlhttprequest', 'document', 'font', 'script', 'stylesheet', 'other')
     for entry in harfile_json['log']['entries']:
         url = entry['request']['url']
+        urlparts = urlparse(url)
         print("Processing {} ...".format(url))
         try:
             fld = get_fld(url, fail_silently=True)
@@ -34,9 +36,9 @@ def main(harfile_path, domain, blockfile):
                 if entry["_resourceType"] == "xhr":
                     entry["_resourceType"] = "xmlhttprequest"
                 if entry["_resourceType"] not in options:
-                    d = {"third-party": True}
+                    d = {"third-party": True, "domain": urlparts.hostname}
                 else:
-                    d = {entry["_resourceType"]: True, "third-party": True}
+                    d = {entry["_resourceType"]: True, "third-party": True, "domain": urlparts.hostname}
 
                 if rules.should_block(url, d):
                     adblock_db["stats"]["block"] += 1
@@ -46,9 +48,9 @@ def main(harfile_path, domain, blockfile):
                 if entry["_resourceType"] == "xhr":
                     entry["_resourceType"] = "xmlhttprequest"
                 if entry["_resourceType"] not in options:
-                    d = {"third-party": False}
+                    d = {"third-party": False, "domain": urlparts.hostname}
                 else:
-                    d = {entry["_resourceType"]: True, "third-party": False}
+                    d = {entry["_resourceType"]: True, "third-party": False, "domain": urlparts.hostname}
 
                 if rules.should_block(url, d):
                     adblock_db["stats"]["block"] += 1

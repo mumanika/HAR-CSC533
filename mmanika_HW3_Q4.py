@@ -20,12 +20,11 @@ def main(csv_file):
 
         bw_dict[row["IP Address"]] = [row["Router Name"], float(row["Bandwidth (KB/s)"])]
 
-
         if row["Flag - Guard"] == "1":
             guard.append(row["IP Address"])
         if row["Flag - Exit"] == "1":
             exit.append(row["IP Address"])
-        if row["Flag - Guard"] == "0" and row["Flag - Exit"] == "1":
+        if row["Flag - Guard"] == "0" and row["Flag - Exit"] == "0":
             relay.append(row["IP Address"])
 
     print("The top 5 countries that host the most number of Tor relays are:")
