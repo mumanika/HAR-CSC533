@@ -1,14 +1,18 @@
 import csv
 from matplotlib_venn import venn3
 from matplotlib import pyplot as plt
+import hashlib
+from prettytable import PrettyTable
 
 def main(csv_file):
 
     f = open(csv_file, "r")
     csv_reader = csv.DictReader(f)
-
+    # s = str.encode("Hello")
+    # print(hashlib.md5(s).hexdigest())
     countries = {}
     bw_dict = {}
+    tor_relays = {}
     relay = []
     guard = []
     exit = []
@@ -17,26 +21,36 @@ def main(csv_file):
             countries[row["Country Code"]] += 1
         else:
             countries[row["Country Code"]] = 1
-
-        bw_dict[row["IP Address"]] = [row["Router Name"], float(row["Bandwidth (KB/s)"])]
-
-        if row["Flag - Guard"] == "1":
-            guard.append(row["IP Address"])
-        if row["Flag - Exit"] == "1":
-            exit.append(row["IP Address"])
-        if row["Flag - Guard"] == "0" and row["Flag - Exit"] == "0":
-            relay.append(row["IP Address"])
+        tor_relays[hashlib.md5(str.encode(row["Router Name"]+row["Bandwidth (KB/s)"]+row["IP Address"]+row["Hostname"])).hexdigest()] = {
+            "country": row["Country Code"],
+            "bw": row["Bandwidth (KB/s)"],
+            "ip": row["IP Address"],
+            "hostname": row["Hostname"],
+            "exit_relay": row["Flag - Exit"],
+            "guard_relay": row["Flag - Guard"],
+            "name": row["Router Name"]
+        }
+    f.close()
+    for key, value in tor_relays.items():
+        if value["guard_relay"] == "1":
+            guard.append(key)
+        if value["exit_relay"] == "1":
+            exit.append(key)
+        if value["guard_relay"] == "0" and value["exit_relay"] == "0":
+            relay.append(key)
 
     print("The top 5 countries that host the most number of Tor relays are:")
     print(sorted(countries.keys(), key= lambda x: countries[x], reverse=True)[:5])
     print("The top 5 relays that contribute bandwidth are:")
-    relay_list = sorted(bw_dict.items(), key=lambda x: x[1][1], reverse=True)[:5]
+    relay_list = sorted(tor_relays.values(), key= lambda x: float(x["bw"]), reverse=True)[:5]
+    bw_table = PrettyTable()
+    bw_table.field_names = ["Router Name", "Hostname", "IP Address", "Bandwidth"]
     for i in relay_list:
-        print("Name: {}\tIP Address: {}\tBandwidth: {}".format(i[1][0], i[0], i[1][1]))
+        bw_table.add_row([i["name"], i["hostname"], i["ip"], i["bw"]])
+    print(bw_table)
     venn3([set(relay), set(guard), set(exit)], set_labels=("Middle Relays", "Guard Relays", "Exit Relays"))
     plt.title("Venn Diagram for Relay types")
     plt.show()
-    f.close()
 
 if __name__ == '__main__':
     file_name = "Tor_query_EXPORT-1.csv"
