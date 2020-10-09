@@ -64,7 +64,7 @@ def main(csv_file):
                                 "Exit Relay Only BW (kbps)", "Exit + Guard Relay BW (kbps)"]
     cum_bw_table.add_row([stats["guard_only_bw"], stats["mid_bw"], stats["ex_only_bw"], stats["ex_guard_bw"]])
     print(cum_bw_table)
-    venn3([set(relay), set(guard), set(exit)], set_labels=("Middle Relays", "Guard Relays", "Exit Relays"))
+    venn3([set(relay), set(guard), set(exit)], set_labels=("Middle Relays ({}Kbps)".format(stats["mid_bw"]), "Guard Relays ({}Kbps)".format(stats["guard_only_bw"]+stats["ex_guard_bw"]), "Exit Relays ({}Kbps)".format(stats["ex_only_bw"]+stats["ex_guard_bw"])))
     plt.title("Venn Diagram for Relay types")
     plt.show()
 
